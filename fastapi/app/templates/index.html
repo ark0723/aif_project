@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Image Generator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <h2>키워드를 입력하세요</h2>
+    <h4>예제: 잠옷 입은 고양이</h4>
+    <form id="participantForm" action= '/image/create' method='POST'>
+      <div>
+        <label for="keyword">키워드:</label>
+        <input type="text" id="keyword" name="keyword" required />
+        <label for="style">스타일:</label>
+        <input type="text" id="style" name="style" required />
+      </div>
+      <button type="submit">이미지 생성하기</button>
+    </form>
+  </body>
+</html>
