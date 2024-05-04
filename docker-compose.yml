@@ -9,10 +9,11 @@ services:
     volumes:
       - ./django/app:/app
     environment:
-      - DATABASE_HOST=db
-      - DATABASE_NAME=mydb
-      - DATABASE_USER=myuser
-      - DATABASE_PASSWORD=mypass
+      - DATABASE_HOST=${DB_HOST}
+      - DATABASE_NAME=${DB_NAME}
+      - DATABASE_USER=${DB_USER}
+      - DATABASE_PASSWORD=${DB_PASSWORD}
+      - EMAIL_API_KEY = ${EMAIL_API_KEY}
 
   fastapi:
     build:
@@ -22,18 +23,27 @@ services:
     volumes:
       - ./fastapi/app:/app
     environment:
-      - DATABASE_HOST=db
-      - DATABASE_NAME=mydb
-      - DATABASE_USER=myuser
-      - DATABASE_PASSWORD=mypass
+      - DATABASE_HOST=${DB_HOST}
+      - DATABASE_NAME=${DB_NAME}
+      - DATABASE_USER=${DB_USER}
+      - DATABASE_PASSWORD=${DB_PASSWORD}
+      - OPENAI_API_KEY = ${OPENAI_API_KEY}
+      - STABLE_DIFFUSION_KEY = ${STABLE_DIFFUSION_KEY}
+      - REGION_NAME = ${REGION_NAME}
+      - S3_BUCKET_NAME = ${S3_BUCKET_NAME}
+      - AWS_ACCESS_KEY_ID = ${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY = ${AWS_SECRET_ACCESS_KEY}
+      - S3_URL = ${S3_URL}
+    env_file:
+      - .env
 
   db:
     image: mysql:5.7
     environment:
-      MYSQL_ROOT_PASSWORD: rootpass
-      MYSQL_DATABASE: mydb
-      MYSQL_USER: myuser
-      MYSQL_PASSWORD: mypass
+      MYSQL_ROOT_PASSWORD: ${ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
     volumes:
       - ./mysql_data:/var/lib/mysql  # Mount a named volume for MySQL data
 

@@ -1,8 +1,9 @@
-from fastapi import FastAPI, Request, Depends, Response, Cookie
+from fastapi import FastAPI, Request, Depends, Response
 from fastapi.responses import HTMLResponse, RedirectResponse
 from pathlib import Path
 from starlette.templating import Jinja2Templates
 from schemas import UserForm
+from routers import img_router
 from sqlalchemy.orm import Session
 from database import get_db
 import re
@@ -16,6 +17,7 @@ BASE_DIR = Path(__file__).resolve().parent
 templates = Jinja2Templates(directory=str(Path(BASE_DIR, "templates")))
 
 app = FastAPI()
+app.include_router(img_router)
 
 
 @app.get("/", response_class=HTMLResponse)

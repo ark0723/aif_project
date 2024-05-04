@@ -1,8 +1,8 @@
 from openai import OpenAI
+from dotenv import load_dotenv
 import requests
 import json
 import os
-from dotenv import load_dotenv
 import time
 
 load_dotenv()
@@ -12,7 +12,7 @@ def get_community_model_list():
     # https://stablediffusionapi.com/docs/miscs/model-list
     url = "https://stablediffusionapi.com/api/v4/dreambooth/model_list"
 
-    payload = json.dumps({"key": os.environ.get("STABLE_DIFFUSION_KEY")})
+    payload = json.dumps({"key": os.getenv("STABLE_DIFFUSION_KEY")})
     headers = {"Content-Type": "application/json"}
     response = requests.request("POST", url, headers=headers, data=payload)
 
@@ -26,7 +26,7 @@ def generate_ai_image(keyword: str, style: str):
 
     start = time.time()
 
-    client = OpenAI()
+    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
     completion = client.chat.completions.create(
         model="gpt-3.5-turbo",
@@ -52,7 +52,7 @@ def generate_ai_image(keyword: str, style: str):
 
     payload = json.dumps(
         {
-            "key": os.environ.get("STABLE_DIFFUSION_KEY"),
+            "key": os.getenv("STABLE_DIFFUSION_KEY"),
             "prompt": description,
             "negative_prompt": ",".join(negative_words),
             "width": "512",  # max width: 1024
@@ -117,7 +117,7 @@ def generate_ai_image_community_model(keyword: str, style: str, model_id: str):
 
     payload = json.dumps(
         {
-            "key": os.environ.get("STABLE_DIFFUSION_KEY"),
+            "key": os.getenv("STABLE_DIFFUSION_KEY"),
             "prompt": description,
             "negative_prompt": ",".join(negative_words),
             "model_id": model_id,
@@ -163,7 +163,7 @@ def upscale_from_image(img_url: str):
 
     payload = json.dumps(
         {
-            "key": os.environ.get("STABLE_DIFFUSION_KEY"),
+            "key": os.getenv("STABLE_DIFFUSION_KEY"),
             "prompt": None,
             "negative_prompt": None,
             "init_image": img_url,
