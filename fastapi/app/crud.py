@@ -1,6 +1,7 @@
 from models import User, Image
 from schemas import UserForm
 from sqlalchemy.orm import Session
+from sqlalchemy import not_
 from fastapi import Form
 
 
@@ -12,9 +13,20 @@ def create_user(db: Session, user: UserForm):
     return db_user
 
 
-# 유저 조회
-def get_user(db: Session, user_email: str):
+# 유저 조회 by email
+def get_user_by_email(db: Session, user_email: str):
     return db.query(User).filter(User.member_email == user_email).first()
+
+
+# 유저 조회 by img_uuid
+def get_user_by_uuid(db: Session, img_uuid: str):
+    return db.query(User).filter(User.img_uuid == img_uuid).first()
+
+
+# 전체 유저 리스트
+def get_all_users(db: Session):
+    users = db.query(User).all()
+    return users
 
 
 # 이미지생성
@@ -71,19 +83,32 @@ def update_user_count(db: Session, user_id: int):
     return db_user
 
 
-# 이미지 조회 by user_id
-def get_image_list(db: Session, user_id: int, file_pattern: str):
-    img_list = (
-        db.query(Image)
-        .filter(Image.member_id == user_id, Image.img_url.contains(file_pattern))
-        .all()
-    )
+# 모든 이미지 조회 by user_id
+def get_all_images(db: Session, user_id: int):
+    img_list = db.query(Image).filter(Image.member_id == user_id).all()
     return img_list
 
 
-# 샘플 이미지 최신순 조회
-def get_sample_image_list(db: Session, limit_num: int):
+# 전체 사용자들의 티셔츠 샘플 이미지 최신순 조회
+def get_sample_image_list(db: Session, limit_num: int, including: str):
     img_sample_list = (
-        db.query(Image).order_by(Image.created_at.desc()).limit(limit_num).all()
+        db.query(Image)
+        .filter(Image.img_url.contains(including))
+        .order_by(Image.created_at.desc())
+        .limit(limit_num)
+        .all()
+    )
+    return img_sample_list
+
+
+# 특정 유저가 생성한 샘플 이미지 최신순 조회(티셔츠 이미지 불포함)
+def get_sample_image_by_user(db: Session, user_id: int, exclude_pattern: str):
+    img_sample_list = (
+        db.query(Image)
+        .filter(
+            Image.member_id == user_id, not_(Image.img_url.contains(exclude_pattern))
+        )
+        .order_by(Image.created_at.desc())
+        .all()
     )
     return img_sample_list

@@ -1,8 +1,8 @@
-from fastapi import FastAPI, Request, Depends, Response
+from fastapi import FastAPI, Request, Depends, Response, HTTPException, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 from pathlib import Path
 from starlette.templating import Jinja2Templates
-from schemas import UserForm
+from schemas import UserForm, UserBoard, ImageTshirtShow
 from routers import img_router
 from sqlalchemy.orm import Session
 from database import get_db
@@ -42,7 +42,7 @@ def verify(
     if not re.fullmatch(pattern, user.member_email):
         return {"msg": f"{user.member_email} is not a valid email address."}
 
-    db_user = crud.get_user(db, user)
+    db_user = crud.get_user_by_email(db, user)
 
     if db_user:  # 생성하고자 하는 admin이 이미 존재하면 set cookie
 
@@ -72,6 +72,36 @@ def verify(
     print({"message": "Cookie is set on the browser"})
 
     return RedirectResponse(url="/", status_code=302)
+
+
+@app.get("/main", response_model=list[ImageTshirtShow], status_code=200)
+def show_tshirt_sample_images(db: Session = Depends(get_db)):
+    included_pattern = "tshirt-"
+
+    image_list = crud.get_sample_image_list(
+        db, limit_num=10, including=included_pattern
+    )
+
+    if not image_list:
+        return HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Sample Iamge does not exist!",
+        )
+
+    return image_list
+
+
+@app.post("/users/list", response_model=list[UserBoard], status_code=201)
+def get_users_list(db: Session = Depends(get_db)):
+
+    user_list = crud.get_all_users(db)
+
+    if not user_list:
+        return HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User does not exist!"
+        )
+
+    return user_list
 
 
 if __name__ == "__main__":

@@ -2,9 +2,6 @@ from fastapi import (
     APIRouter,
     Depends,
     Form,
-    Response,
-    Request,
-    File,
     UploadFile,
     HTTPException,
     status,
@@ -49,7 +46,7 @@ def get_ai_images(
             status_code=400, detail="keyword and style are required, please try again."
         )
 
-    user = crud.get_user(db=db, user_email=email)
+    user = crud.get_user_by_email(db=db, user_email=email)
     if user and (user.img_generate_count < 2):
 
         # 2. 이미지를 생성한다
@@ -74,16 +71,30 @@ def get_ai_images(
 
 
 @img_router.get(
-    "/show-samples", response_model=list[schemas.ImageSave], status_code=200
+    "/show-samples", response_model=list[schemas.ImageShow], status_code=200
 )
-def show_sample_images(db: Session = Depends(get_db)):
-    image_list = crud.get_sample_image_list(db, 8)
-    if not image_list:
+def show_sample_images_by_user(
+    email: Annotated[str | None, Cookie()] = None, db: Session = Depends(get_db)
+):
+    # 1. user email을 쿠키로부터 받아온후, email을 이용해서 user id를 db에서 받아온다
+    if not email:
         return HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Sample Iamge does not exist!"
+            status_code=400, detail="Your email info does not exists in cookie!"
         )
+    user = crud.get_user_by_email(db=db, user_email=email)
 
-    return image_list
+    if user:
+        # load ai images created by user
+        excluded = "tshirt"
+        print("current user's email : ", user.member_email)
+        image_list = crud.get_sample_image_by_user(db, user.member_id, excluded)
+        if not image_list:
+            return HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Sample Iamge does not exist!",
+            )
+
+        return image_list
 
 
 @img_router.post("/save-images", status_code=201)
@@ -99,7 +110,8 @@ async def upload_multiple_files(
             status_code=400, detail="Your email info does not exists in cookie!"
         )
     # email 주소를 통해 해당 유저 불러오기
-    user = crud.get_user(db=db, user_email=email)
+    user = crud.get_user_by_email(db=db, user_email=email)
+    print("current user's email : ", user.member_email)
 
     url_list = []
 
@@ -125,3 +137,27 @@ async def upload_multiple_files(
 
     # return images' urls
     return {"url": url_list}
+
+
+@img_router.get(
+    "/load-imginfo", response_model=list[schemas.ImageShow], status_code=200
+)
+def show_sample_images_by_user(img_uuid: str, db: Session = Depends(get_db)):
+    # 1. uuid를 이용하여 user 찾기
+    user = crud.get_user_by_uuid(db=db, img_uuid=img_uuid)
+
+    if not user:
+        return HTTPException(status_code=400, detail="The user does not exist!")
+
+    else:
+        # 2. 이미지 불러오기
+        # load all images created by user
+        print("current user's email : ", user.member_email)
+        image_list = crud.get_all_images(db, user_id=user.member_id)
+        if not image_list:
+            return HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Image does not exist!",
+            )
+
+        return image_list

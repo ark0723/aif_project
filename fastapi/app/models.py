@@ -5,13 +5,13 @@ from sqlalchemy import (
     String,
     ForeignKey,
     DateTime,
-    Boolean,
     Text,
     SmallInteger,
     CheckConstraint,
 )
 from datetime import datetime, timedelta
 from database import Base
+import uuid
 
 
 # Base class override
@@ -28,6 +28,7 @@ class User(Base):
     member_id = Column(Integer, primary_key=True, index=True)
     member_email = Column(String(length=100), nullable=False, index=True)
     img_generate_count = Column(SmallInteger, default=0)
+    img_uuid = Column(String(length=255), default=str(uuid.uuid4()))
     # define a checkconstraint for generating_count column
     __table_args__ = (
         CheckConstraint("img_generate_count <=2", name="max_count_constraint"),

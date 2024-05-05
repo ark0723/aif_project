@@ -1,14 +1,7 @@
 from pydantic import BaseModel
 from fastapi import Form
-
-
-class EmailForm(BaseModel):
-    email_address: str
-
-    @classmethod
-    def as_form(cls, email_address: str = Form(...)):
-
-        return cls(email_address=email_address)
+from typing import Optional
+from datetime import datetime
 
 
 class UserForm(BaseModel):
@@ -17,6 +10,13 @@ class UserForm(BaseModel):
     @classmethod
     def as_form(cls, member_email: str = Form(...)):
         return cls(member_email=member_email)
+
+
+class UserBoard(BaseModel):
+    member_id: int
+    member_email: str
+    img_uuid: str
+    created_at: datetime
 
 
 class ImageForm(BaseModel):
@@ -33,6 +33,17 @@ class ImageSave(BaseModel):
     img_url: str
     keyword_input: str
     style_code: str
+
+
+class ImageTshirtShow(BaseModel):
+    img_id: int
+    member_id: int
+    img_url: str
+
+
+class ImageShow(ImageTshirtShow):
+    keyword_input: Optional[str] = None
+    style_code: Optional[str] = None
 
 
 class ImageUpdate(BaseModel):
