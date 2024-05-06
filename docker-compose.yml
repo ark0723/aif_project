@@ -1,5 +1,3 @@
-version: '3'
-
 services:
   django:
     build:
@@ -14,6 +12,8 @@ services:
       - DATABASE_USER=${DB_USER}
       - DATABASE_PASSWORD=${DB_PASSWORD}
       - EMAIL_API_KEY = ${EMAIL_API_KEY}
+    env_file:
+      - .env
 
   fastapi:
     build:
