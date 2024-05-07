@@ -46,6 +46,7 @@ services:
       MYSQL_PASSWORD: ${DB_PASSWORD}
     volumes:
       - ./mysql_data:/var/lib/mysql  # Mount a named volume for MySQL data
+    restart: alwyas
 
   nginx:
     image: nginx:latest
@@ -53,6 +54,7 @@ services:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
     ports:
       - "80:80"
+    restart: always
     depends_on:
       - django
       - fastapi

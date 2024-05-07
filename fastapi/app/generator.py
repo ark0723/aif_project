@@ -93,12 +93,24 @@ def generate_ai_image_community_model(keyword: str, style: str, model_id: str):
 
     client = OpenAI()
 
+    """
+    프롬프트 예시
+    (스타일키워드입력:)스타일로 (키워드입력: 멋진 남자배우가 가로등을 기대어 서있는 모습, 빈티지스러운 색상, 스토리가 있어보이는 환경), 
+    티셔츠에 넣기 좋은 이미지 키워드를, 
+    (이미지 느낌에 따라 완전히 흰 배경 또는 검정 배경에), 
+    (사진인지, 그림인지), 
+    (동물인지, 사람인지, 풍경인지), 조명 종류, 시점, 배경, 사진기가 광각인지 망원인지를 
+    고려해서 스테이블 디퓨전에 적절한 프롬프트를 영어로 적어줘
+    """
+
+    # style_codes = ['레트로', '팝아트', '데코', '그라피티', '키덜트', '라인아트', '스테인드글라스', '빈티지 포스터']
+
     completion = client.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=[
             {
                 "role": "user",
-                "content": f"Given the following keyword: {keyword}, generate a {style} of image. write down prompt with more details within 50 words.",
+                "content": f"({style}) 스타일로, ({keyword}), 티셔츠에 넣기 좋은 이미지 키워드를, (이미지 느낌에 따라 완전히 흰 배경 또는 검정 배경에), (사진인지, 그림인지), (동물인지, 사람인지, 풍경인지), 조명 종류, 시점, 배경, 사진기가 광각인지 망원인지를 고려해서 스테이블 디퓨전에 적절한 프롬프트를 영어로 적어줘",
             },
         ],
         temperature=0.8,
@@ -113,7 +125,45 @@ def generate_ai_image_community_model(keyword: str, style: str, model_id: str):
 
     url = "https://stablediffusionapi.com/api/v4/dreambooth"
 
-    negative_words = ["nsfw", "uncensored", "cleavage", "nude", "nipples"]
+    negative_words = [
+        "nsfw",
+        "uncensored",
+        "cleavage",
+        "nude",
+        "nipples",
+        "painting",
+        "extra fingers",
+        "mutated hands",
+        "poorly drawn hands",
+        "poorly drawn face",
+        "distorted form",
+        "deformed",
+        "bad crushed",
+        "ugly",
+        "blurry",
+        "bad anatomy",
+        "bad proportions",
+        "extra limbs",
+        "cloned face",
+        "skinny",
+        "glitchy",
+        "double torso",
+        "extra arms",
+        "extra hands",
+        "mangled fingers",
+        "missing lips",
+        "ugly face",
+        "distorted face",
+        "extra legs",
+        "truncated image",
+        "cropped image",
+        "a mock-up image",
+        "Images unrelated to the prompt you entered",
+        "An image where the main prompt you entered is not the main character",
+    ]
+
+    if style in ["그라피티", "그래피티"]:
+        negative_words.append("a picture drawn on the street")
 
     payload = json.dumps(
         {
@@ -121,13 +171,13 @@ def generate_ai_image_community_model(keyword: str, style: str, model_id: str):
             "prompt": description,
             "negative_prompt": ",".join(negative_words),
             "model_id": model_id,
-            "width": "1024",
-            "height": "1024",
-            "samples": "2",
+            "width": "512",
+            "height": "512",
+            "samples": "4",
             "num_inference_steps": "30",
             "safety_checker": "yes",
             "enhance_prompt": "yes",
-            "seed": None,
+            "seed": 9284,
             "guidance_scale": 7.5,
             "multi_lingual": "no",
             "panorama": "no",

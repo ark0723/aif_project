@@ -1,3 +1,6 @@
 # env 파일
 .env
 */.env
+
+# mysql data
+/mysql_data

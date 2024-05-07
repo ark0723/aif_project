@@ -14,7 +14,7 @@ import os
 
 from pathlib import Path
 from starlette.templating import Jinja2Templates
-from generator import generate_ai_image
+from generator import generate_ai_image_community_model
 from s3_utils import upload_byte_to_s3
 import crud, schemas
 
@@ -50,7 +50,8 @@ def get_ai_images(
     if user and (user.img_generate_count < 2):
 
         # 2. 이미지를 생성한다
-        img_urls = generate_ai_image(keyword, style)
+        model_id = "crystal-clear-xlv1"
+        img_urls = generate_ai_image_community_model(keyword, style, model_id)
         print(img_urls)
 
         # 3. 이미지 info를 db에 insert한다
