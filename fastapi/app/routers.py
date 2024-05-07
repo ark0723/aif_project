@@ -71,6 +71,45 @@ def get_ai_images(
     )
 
 
+@img_router.post("/tmp_create", status_code=201)
+def get_ai_images(
+    email: Annotated[str | None, Cookie()] = None,
+    keyword: str = Form(...),
+    style: str = Form(...),
+    db: Session = Depends(get_db),
+):
+    # 1. user email을 쿠키로부터 받아온후, email을 이용해서 user id를 db에서 받아온다
+    if not email:
+        return HTTPException(
+            status_code=400, detail="Your email info does not exists in cookie!"
+        )
+
+    if not (keyword and style):
+        return HTTPException(
+            status_code=400, detail="keyword and style are required, please try again."
+        )
+
+    user = crud.get_user_by_email(db=db, user_email=email)
+    if user:
+
+        # 2. 이미지를 생성한다
+        model_id = "crystal-clear-xlv1"
+        img_urls = generate_ai_image_community_model(keyword, style, model_id)
+        print(img_urls)
+
+        # 3. 이미지 info를 db에 insert한다
+        for url in img_urls:
+            db_img = crud.create_image(db, user.member_id, url, keyword, style)
+
+        # 4. user table의 count 1 증가
+        crud.update_user_count(db, user.member_id)
+
+        return HTTPException(
+            status_code=status.HTTP_201_CREATED,
+            detail="Images has been created successfully!",
+        )
+
+
 @img_router.get(
     "/show-samples", response_model=list[schemas.ImageShow], status_code=200
 )

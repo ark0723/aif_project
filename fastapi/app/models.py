@@ -29,10 +29,10 @@ class User(Base):
     member_email = Column(String(length=100), nullable=False, index=True)
     img_generate_count = Column(SmallInteger, default=0)
     img_uuid = Column(String(length=255), default=str(uuid.uuid4()))
-    # define a checkconstraint for generating_count column
-    __table_args__ = (
-        CheckConstraint("img_generate_count <=2", name="max_count_constraint"),
-    )
+    # # define a checkconstraint for generating_count column
+    # __table_args__ = (
+    #     CheckConstraint("img_generate_count <=2", name="max_count_constraint"),
+    # )
 
 
 class Image(Base):

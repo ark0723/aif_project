@@ -46,7 +46,7 @@ services:
       MYSQL_PASSWORD: ${DB_PASSWORD}
     volumes:
       - ./mysql_data:/var/lib/mysql  # Mount a named volume for MySQL data
-    restart: alwyas
+    restart: always
 
   nginx:
     image: nginx:latest
