@@ -1,7 +1,6 @@
 from models import User, Image
 from schemas import UserForm
 from sqlalchemy.orm import Session
-from sqlalchemy import not_
 from fastapi import Form
 
 
@@ -105,9 +104,8 @@ def get_sample_image_list(db: Session, limit_num: int, including: str):
 def get_sample_image_by_user(db: Session, user_id: int, exclude_pattern: str):
     img_sample_list = (
         db.query(Image)
-        .filter(
-            Image.member_id == user_id, not_(Image.img_url.contains(exclude_pattern))
-        )
+        .filter(Image.member_id == user_id)
+        .filter(~Image.img_url.contains(exclude_pattern))
         .order_by(Image.created_at.desc())
         .all()
     )
