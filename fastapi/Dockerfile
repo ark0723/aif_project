@@ -5,6 +5,10 @@ FROM python:3.11-alpine
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
+# Install system dependencies
+RUN apk update && \
+    apk add --no-cache --virtual .build-deps gcc musl-dev mariadb-dev
+
 # Set work directory
 WORKDIR /app
 
