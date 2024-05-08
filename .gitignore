@@ -3,4 +3,4 @@
 */.env
 
 # mysql data
-./mysql_data
+# ./mysql_data
