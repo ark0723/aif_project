@@ -3,13 +3,16 @@ import requests
 from django.http import JsonResponse
 from .models import Member
 from django.views.decorators.csrf import csrf_exempt
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 @csrf_exempt
 def check_email(request):
     if request.method == "POST":
         email = request.POST.get("email")
-        api_key = "00f1f011058d4e6a931e0f7dac18832c"
+        api_key = os.getenv("EMAIL_API_KEY")
         try:
             api_response = requests.get(
                 f"https://api.zerobounce.net/v2/validate?api_key={api_key}&email={email}"
