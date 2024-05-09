@@ -32,8 +32,5 @@ def save_survey_answer(request, question_id):
     return redirect("survey_detail", survey_id=question.survey.pk)
 
 
-from django.shortcuts import render
-
-
 def index(request):
     return render(request, "surveys/index.html")
