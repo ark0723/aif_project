@@ -8,6 +8,7 @@ from sqlalchemy import (
     Text,
     SmallInteger,
     CheckConstraint,
+    Boolean,
 )
 from datetime import datetime, timedelta
 from database import Base
@@ -18,27 +19,35 @@ import uuid
 @as_declarative()
 class Base:
     created_at = Column(DateTime, default=datetime.now)
-    # updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
+    updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
     __name__: str
 
 
 class User(Base):
-    __tablename__ = "AIF_Member"
+    __tablename__ = "member_member"
 
     member_id = Column(Integer, primary_key=True, index=True)
     member_email = Column(String(length=100), nullable=False, index=True)
+    member_password = Column(String(255), nullable=True)
+    img_uuid = Column(String(36), default=str(uuid.uuid4()))
     img_generate_count = Column(SmallInteger, default=0)
-    img_uuid = Column(String(length=255), default=str(uuid.uuid4()))
-    # # define a checkconstraint for generating_count column
+    auth_group = Column(String(10), default="general")
+    is_admin = Column(Boolean, default=False)
+    mem_waiting = Column(Boolean, default=False)
+    mem_number = Column(String(20), nullable=True)
+
+    # define a checkconstraint for generating_count column
     # __table_args__ = (
     #     CheckConstraint("img_generate_count <=2", name="max_count_constraint"),
     # )
+    def __repr__(self):
+        return f"<Member(member_email='{self.member_email}', is_admin={self.is_admin})>"
 
 
 class Image(Base):
-    __tablename__ = "AI_Image"
+    __tablename__ = "member_image"
     img_id = Column(Integer, primary_key=True, index=True)
-    member_id = Column(Integer, ForeignKey("AIF_Member.member_id"))
+    member_id = Column(Integer, ForeignKey("member_member.member_id"))
     img_url = Column(String(length=255))
     keyword_input = Column(Text)
     generating_count = Column(SmallInteger, default=0)

@@ -1,37 +1,38 @@
 from django.db import models
-
-
-class Survey(models.Model):
-    title = models.CharField(max_length=200)
-    start_date = models.DateTimeField()
-    end_date = models.DateTimeField()
-    is_active = models.BooleanField(default=True)
-
-    def __str__(self):
-        return self.title
+from member.models import Member
 
 
 class Question(models.Model):
-    survey = models.ForeignKey(
-        Survey, related_name="questions", on_delete=models.CASCADE
-    )
-    text = models.CharField(max_length=255)
     TYPE_CHOICES = (
         ("text", "Text"),
         ("single", "Single Choice"),
         ("multiple", "Multiple Choice"),
     )
+
+    question_id = models.AutoField(primary_key=True)
+    question_content = models.TextField(verbose_name="question")
+    is_active = models.BooleanField(default=True, verbose_name="activation")
     question_type = models.CharField(max_length=10, choices=TYPE_CHOICES)
 
     def __str__(self):
-        return self.text
+        return self.question_content
 
 
 class Answer(models.Model):
+    answer_id = models.AutoField(primary_key=True)
     question = models.ForeignKey(
-        Question, related_name="answers", on_delete=models.CASCADE
+        Question,
+        on_delete=models.CASCADE,
+        related_name="answers",
+        verbose_name="question",
     )
-    text = models.TextField()
+    user = models.ForeignKey(
+        Member,
+        on_delete=models.CASCADE,
+        related_name="answers",
+        verbose_name="respondent",
+    )
+    text = models.CharField(max_length=255, verbose_name="answer")
 
     def __str__(self):
         return self.text

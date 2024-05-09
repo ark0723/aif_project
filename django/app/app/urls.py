@@ -22,8 +22,7 @@ from member import views
 
 
 urlpatterns = [
-    path("", surveys_views.index, name="home"),
-    path("member/", include("member.urls")),
     path("admin/", admin.site.urls),
+    path("member/", include("member.urls")),
     path("surveys/", include("surveys.urls")),
 ]

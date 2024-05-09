@@ -1,6 +1,12 @@
 from django.contrib import admin
-from .models import Question, Survey, Answer
+from .models import Question, Answer
 
-admin.site.register(Question)
-admin.site.register(Survey)
-admin.site.register(Answer)
+
+@admin.register(Question)
+class QuestionAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(Answer)
+class AnswerAdmin(admin.ModelAdmin):
+    pass
