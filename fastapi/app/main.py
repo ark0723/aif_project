@@ -83,7 +83,7 @@ def show_tshirt_sample_images(db: Session = Depends(get_db)):
     )
 
     if not image_list:
-        return HTTPException(
+        raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Sample Iamge does not exist!",
         )

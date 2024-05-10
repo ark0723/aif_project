@@ -7,6 +7,7 @@ from fastapi import (
     status,
     Cookie,
 )
+from fastapi.responses import JSONResponse
 from typing import Annotated
 from sqlalchemy.orm import Session
 from database import get_db
@@ -37,12 +38,12 @@ def get_ai_images(
 ):
     # 1. user email을 쿠키로부터 받아온후, email을 이용해서 user id를 db에서 받아온다
     if not email:
-        return HTTPException(
+        raise HTTPException(
             status_code=400, detail="Your email info does not exists in cookie!"
         )
 
     if not (keyword and style):
-        return HTTPException(
+        raise HTTPException(
             status_code=400, detail="keyword and style are required, please try again."
         )
 
@@ -56,7 +57,7 @@ def get_ai_images(
 
         # 프롬프트로부터 생성된 이미지 url이 없는 경우
         if not img_urls:
-            return HTTPException(
+            raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Image was not created based on your prompt, please try again!",
             )
@@ -68,11 +69,12 @@ def get_ai_images(
         # 4. user table의 count 1 증가
         crud.update_user_count(db, user.member_id)
 
-        return HTTPException(
+        return JSONResponse(
             status_code=status.HTTP_201_CREATED,
-            detail="Images has been created successfully!",
+            content={"message": "Images have been created successfully!"},
         )
-    return HTTPException(
+
+    raise HTTPException(
         status_code=status.HTTP_400_BAD_REQUEST,
         detail="You have reached the maxium attempts (2) of generating AI images.",
     )
@@ -87,12 +89,12 @@ def get_ai_images(
 ):
     # 1. user email을 쿠키로부터 받아온후, email을 이용해서 user id를 db에서 받아온다
     if not email:
-        return HTTPException(
+        raise HTTPException(
             status_code=400, detail="Your email info does not exists in cookie!"
         )
 
     if not (keyword and style):
-        return HTTPException(
+        raise HTTPException(
             status_code=400, detail="keyword and style are required, please try again."
         )
 
@@ -104,6 +106,13 @@ def get_ai_images(
         img_urls = generate_ai_image_community_model(keyword, style, model_id)
         print(img_urls)
 
+        # 프롬프트로부터 생성된 이미지 url이 없는 경우
+        if not img_urls:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Image was not created based on your prompt, please try again!",
+            )
+
         # 3. 이미지 info를 db에 insert한다
         for url in img_urls:
             db_img = crud.create_image(db, user.member_id, url, keyword, style)
@@ -111,9 +120,9 @@ def get_ai_images(
         # 4. user table의 count 1 증가
         crud.update_user_count(db, user.member_id)
 
-        return HTTPException(
+        return JSONResponse(
             status_code=status.HTTP_201_CREATED,
-            detail="Images has been created successfully!",
+            content={"message": "Images have been created successfully!"},
         )
 
 
@@ -121,11 +130,12 @@ def get_ai_images(
     "/show-samples", response_model=list[schemas.ImageShow], status_code=200
 )
 def show_sample_images_by_user(
-    email: Annotated[str | None, Cookie()] = None, db: Session = Depends(get_db)
+    email: Annotated[str | None, Cookie()] = None,
+    db: Session = Depends(get_db),
 ):
     # 1. user email을 쿠키로부터 받아온후, email을 이용해서 user id를 db에서 받아온다
     if not email:
-        return HTTPException(
+        raise HTTPException(
             status_code=400, detail="Your email info does not exists in cookie!"
         )
     user = crud.get_user_by_email(db=db, user_email=email)
@@ -136,7 +146,7 @@ def show_sample_images_by_user(
         print("current user's email : ", user.member_email)
         image_list = crud.get_sample_image_by_user(db, user.member_id, excluded)
         if not image_list:
-            return HTTPException(
+            raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Sample Iamge does not exist!",
             )
@@ -145,7 +155,7 @@ def show_sample_images_by_user(
 
 
 @img_router.post("/save-images", status_code=201)
-async def upload_multiple_files(
+def upload_multiple_files(
     files: list[UploadFile],
     email: Annotated[str | None, Cookie()] = None,
     db: Session = Depends(get_db),
@@ -153,7 +163,7 @@ async def upload_multiple_files(
 
     # user email을 쿠키로부터 받아온다
     if not email:
-        return HTTPException(
+        raise HTTPException(
             status_code=400, detail="Your email info does not exists in cookie!"
         )
     # email 주소를 통해 해당 유저 불러오기
@@ -194,7 +204,7 @@ def show_sample_images_by_user(img_uuid: str, db: Session = Depends(get_db)):
     user = crud.get_user_by_uuid(db=db, img_uuid=img_uuid)
 
     if not user:
-        return HTTPException(status_code=400, detail="The user does not exist!")
+        raise HTTPException(status_code=400, detail="The user does not exist!")
 
     else:
         # 2. 이미지 불러오기
@@ -202,7 +212,7 @@ def show_sample_images_by_user(img_uuid: str, db: Session = Depends(get_db)):
         print("current user's email : ", user.member_email)
         image_list = crud.get_all_images(db, user_id=user.member_id)
         if not image_list:
-            return HTTPException(
+            raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Image does not exist!",
             )
