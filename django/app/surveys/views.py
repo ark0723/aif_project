@@ -9,6 +9,7 @@ from rest_framework.exceptions import NotFound
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from .serializers import QuestionSerializer, AnswerSerializer
+from member.serializers import UserAnswerSerializer
 
 
 class Questions(APIView):
@@ -19,6 +20,14 @@ class Questions(APIView):
         questions = Question.objects.all()
         serializer = QuestionSerializer(questions, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    # 질문 생성
+    def post(self, request):
+        serializer = QuestionSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class QuestionDetail(APIView):
@@ -35,14 +44,6 @@ class QuestionDetail(APIView):
         # serializer : object -> json
         serializer = QuestionSerializer(question)
         return Response(serializer.data, status=status.HTTP_200_OK)
-
-    # 사용자 생성
-    def post(self, request):
-        serializer = QuestionSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class AnswersByUser(APIView):
@@ -64,5 +65,20 @@ class AnswersByUser(APIView):
 
     # /surveys/answer/<int:member_id>
     def post(self, request, member_id):
+        # Retrieve Member instance based on member_id
+        try:
+            user = Member.objects.get(member_id=member_id)
+        except Member.DoesNotExist:
+            return NotFound
 
+        # Deserialize and validate request data to create an Answer
         serializer = AnswerSerializer(data=request.data)
+        if serializer.is_valid():
+            # Assign the user (Member instance) to the Answer
+            user_serialized = UserAnswerSerializer(user)
+            serializer.validated_data["user"] = user_serialized
+            answer = serializer.save()
+            # Serialize the created Answer and return as response
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
