@@ -35,4 +35,4 @@ class Answer(models.Model):
     text = models.CharField(max_length=255, verbose_name="answer")
 
     def __str__(self):
-        return self.text
+        return f"질문: {self.question.question_id} / 유저: {self.user.member_email} / 대답: {self.text}"

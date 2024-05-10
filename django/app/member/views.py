@@ -29,6 +29,14 @@ class Users(APIView):
         serializer = UserSerializer(users, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    # 사용자 생성
+    def post(self, request):
+        serializer = UserSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class UserDetail(APIView):
 
@@ -44,14 +52,6 @@ class UserDetail(APIView):
         # serializer : object -> json
         serializer = UserSerializer(user)
         return Response(serializer.data, status=status.HTTP_200_OK)
-
-    # 사용자 생성
-    def post(self, request):
-        serializer = UserSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 # 대성 추가

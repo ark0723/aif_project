@@ -54,6 +54,13 @@ def get_ai_images(
         img_urls = generate_ai_image_community_model(keyword, style, model_id)
         print(img_urls)
 
+        # 프롬프트로부터 생성된 이미지 url이 없는 경우
+        if not img_urls:
+            return HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Image was not created based on your prompt, please try again!",
+            )
+
         # 3. 이미지 info를 db에 insert한다
         for url in img_urls:
             db_img = crud.create_image(db, user.member_id, url, keyword, style)

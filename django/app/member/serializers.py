@@ -7,4 +7,15 @@ class UserSerializer(ModelSerializer):
         model = Member
         fields = "__all__"  # 전체 필드 직렬화
 
-        # depth = 1
+
+class UserAnswerSerializer(ModelSerializer):
+    class Meta:
+        model = Member
+        fields = (
+            "member_email",
+            "img_uuid",
+            "img_generate_count",
+            "auth_group",
+            "created_at",
+            "updated_at",
+        )
