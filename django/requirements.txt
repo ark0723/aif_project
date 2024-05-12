@@ -4,3 +4,5 @@ pymysql>=1.0.2
 python-dotenv==1.0.1
 requests>=2.26.0,<3.0.0
 cryptography==42.0.7
+PyJWT==2.8.0
+djangorestframework-simplejwt==5.3.1

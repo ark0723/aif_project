@@ -45,7 +45,8 @@ DJANGO_SYSTEM_APPS = [
 
 CUSTOM_USER_APPS = [
     "common.apps.CommonConfig",
-    "member.apps.MemberConfig",
+    # "member.apps.MemberConfig",
+    "users.apps.UsersConfig",
     "surveys.apps.SurveysConfig",
     "rest_framework",
     "rest_framework.authtoken",
@@ -142,3 +143,21 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+AUTH_USER_MODEL = "users.User"
+
+# REST_FRAMEWORK = {
+#     "DEFAULT_AUTHENTICATION_CLASSES": [
+#         "rest_framework.authentication.TokenAuthentication",
+#     ],
+# }
+
+# 커스텀 JWT 인증 클래스 사용
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": ["app.authentication.JWTAuthentication"],
+}
+
+AUTHENTICATION_BACKENDS = [
+    "users.custom_authentication.EmailAuthBackend",
+    "django.contrib.auth.backends.ModelBackend",  # Default backend
+]

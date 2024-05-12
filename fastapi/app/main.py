@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Request, Depends, Response, HTTPException, status
 from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.middleware.cors import CORSMiddleware
 from pathlib import Path
 from starlette.templating import Jinja2Templates
 from schemas import UserForm, UserBoard, ImageTshirtShow
@@ -18,6 +19,15 @@ templates = Jinja2Templates(directory=str(Path(BASE_DIR, "templates")))
 
 app = FastAPI()
 app.include_router(img_router)
+
+# CORS settings
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.get("/", response_class=HTMLResponse)

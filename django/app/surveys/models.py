@@ -1,5 +1,5 @@
 from django.db import models
-from member.models import Member
+from users.models import User
 
 
 class Question(models.Model):
@@ -27,7 +27,7 @@ class Answer(models.Model):
         verbose_name="question",
     )
     user = models.ForeignKey(
-        Member,
+        User,
         on_delete=models.CASCADE,
         related_name="answers",
         verbose_name="respondent",

@@ -19,6 +19,8 @@ from generator import generate_ai_image_community_model
 from s3_utils import upload_byte_to_s3
 import crud, schemas
 
+from authentication import get_current_user, verify_jwt_token, create_jwt_token
+
 BASE_DIR = Path(__file__).resolve().parent
 print(BASE_DIR)
 
@@ -31,11 +33,15 @@ img_router = APIRouter(prefix="/image")
 
 @img_router.post("/create", status_code=201)
 def get_ai_images(
-    email: Annotated[str | None, Cookie()] = None,
+    # email: Annotated[str | None, Cookie()] = None,
     keyword: str = Form(...),
     style: str = Form(...),
     db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
 ):
+    email = current_user["member_email"]
+    print(current_user)
+    print(email)
     # 1. user email을 쿠키로부터 받아온후, email을 이용해서 user id를 db에서 받아온다
     if not email:
         raise HTTPException(
@@ -82,12 +88,14 @@ def get_ai_images(
 
 @img_router.post("/tmp_create", status_code=201)
 def get_ai_images(
-    email: Annotated[str | None, Cookie()] = None,
+    # email: Annotated[str | None, Cookie()] = None,
     keyword: str = Form(...),
     style: str = Form(...),
     db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
 ):
     # 1. user email을 쿠키로부터 받아온후, email을 이용해서 user id를 db에서 받아온다
+    email = current_user["member_email"]
     if not email:
         raise HTTPException(
             status_code=400, detail="Your email info does not exists in cookie!"
@@ -130,10 +138,12 @@ def get_ai_images(
     "/show-samples", response_model=list[schemas.ImageShow], status_code=200
 )
 def show_sample_images_by_user(
-    email: Annotated[str | None, Cookie()] = None,
+    # email: Annotated[str | None, Cookie()] = None,
     db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
 ):
     # 1. user email을 쿠키로부터 받아온후, email을 이용해서 user id를 db에서 받아온다
+    email = current_user["member_email"]
     if not email:
         raise HTTPException(
             status_code=400, detail="Your email info does not exists in cookie!"
@@ -157,11 +167,13 @@ def show_sample_images_by_user(
 @img_router.post("/save-images", status_code=201)
 def upload_multiple_files(
     files: list[UploadFile],
-    email: Annotated[str | None, Cookie()] = None,
+    # email: Annotated[str | None, Cookie()] = None,
     db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
 ):
 
     # user email을 쿠키로부터 받아온다
+    email = current_user["member_email"]
     if not email:
         raise HTTPException(
             status_code=400, detail="Your email info does not exists in cookie!"

@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import Question, Answer, Member
+from .models import Question, Answer, User
 from .survey_forms import AnswerForm
 
 
@@ -9,7 +9,7 @@ from rest_framework.exceptions import NotFound
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from .serializers import QuestionSerializer, AnswerSerializer
-from member.serializers import UserAnswerSerializer
+from users.serializers import UserAnswerSerializer
 
 
 class Questions(APIView):
@@ -23,6 +23,7 @@ class Questions(APIView):
 
     # 질문 생성
     def post(self, request):
+        # jsont -> object
         serializer = QuestionSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -39,46 +40,87 @@ class QuestionDetail(APIView):
         except Question.DoesNotExist:
             raise NotFound
 
+    # 특정 질문과 질문에 대한 답변들 불러오기
     def get(self, request, question_id):
         question = self.get_question(question_id=question_id)
         # serializer : object -> json
         serializer = QuestionSerializer(question)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    # /surveys/<int:question_id>
+
+    def post(self, request, question_id):
+
+        question = self.get_question(question_id=question_id)
+        serializer = AnswerSerializer(data=request.data)
+
+        if serializer.is_valid():
+            answer = serializer.save(user=request.user, question=question)
+            # Serialize the created Answer and return as response
+            serializer = AnswerSerializer(answer)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+# /surveys/answers
+class Answers(APIView):
+    # 모든 답변 불러오기
+    def get(self, request):
+        answers = Answer.objects.all()
+        serializer = AnswerSerializer(answers, many=True)
+
+        return Response(serializer.data)
+
 
 class AnswersByUser(APIView):
     # 특정 유저가 한 모든 질문 불러오기
     def get_answers_by_user(self, member_id):
         try:
-            user = Member.objects.get(member_id=member_id)
+            user = User.objects.get(member_id=member_id)
 
-        except Member.DoesNotExist:
+        except User.DoesNotExist:
             raise NotFound
 
-        return Answer.objects.filter(user=Member.objects.get(member_id=member_id))
+        return Answer.objects.filter(user=User.objects.get(member_id=member_id))
 
-    # /surveys/answer/<int:member_id>
+    # /surveys/answer-by-user/<int:member_id>
     def get(self, request, member_id):
         answers = self.get_answers_by_user(member_id)
         serializer = AnswerSerializer(answers, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    # /surveys/answer/<int:member_id>
-    def post(self, request, member_id):
-        # Retrieve Member instance based on member_id
-        try:
-            user = Member.objects.get(member_id=member_id)
-        except Member.DoesNotExist:
-            return NotFound
 
-        # Deserialize and validate request data to create an Answer
+class AnswersByQuestion(APIView):
+
+    def get_answers_by_question(self, question_id):
+        try:
+            question = Question.objects.get(question_id=question_id)
+
+        except question.DoesNotExist:
+            raise NotFound
+
+        return Answer.objects.filter(
+            question=Question.objects.get(question_id=question_id)
+        )
+
+    # /surveys/answer-by-question/<int:question_id>
+    def get(self, request, question_id):
+        # 특정 질문에 대한 answers 모두 불러오기
+        answers = self.get_answers_by_question(question_id)
+        serializer = AnswerSerializer(answers, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    # /surveys/answer-by-question/<int:question_id>
+    def post(self, request, question_id):
+
+        question = Question.objects.get(question_id=question_id)
         serializer = AnswerSerializer(data=request.data)
+
         if serializer.is_valid():
-            # Assign the user (Member instance) to the Answer
-            user_serialized = UserAnswerSerializer(user)
-            serializer.validated_data["user"] = user_serialized
-            answer = serializer.save()
+            answer = serializer.save(user=request.user, question=question)
             # Serialize the created Answer and return as response
+            serializer = AnswerSerializer(answer)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
