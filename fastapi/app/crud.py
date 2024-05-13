@@ -45,6 +45,7 @@ def create_image(
     )
     db.add(db_img)
     db.commit()
+    db.refresh(db_img)
     return db_img
 
 
@@ -61,6 +62,7 @@ def create_tshirt_image(
     )
     db.add(db_img)
     db.commit()
+    db.refresh(db_img)
     return db_img
 
 
