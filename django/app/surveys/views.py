@@ -4,16 +4,20 @@ from .survey_forms import AnswerForm
 
 
 from rest_framework.views import APIView
+from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.exceptions import NotFound
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
+from app.authentication import JWTAuthentication
+from users.permissions import IsSuperUserOrAdmin
 from .serializers import QuestionSerializer, AnswerSerializer
-from users.serializers import UserAnswerSerializer
+import json
 
 
 class Questions(APIView):
-    # permission_classes = [IsAuthenticated]  # 추가: 인증 설정
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated, IsSuperUserOrAdmin]
 
     # 전체 질문 리스트
     def get(self, request):
@@ -31,7 +35,10 @@ class Questions(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+# /surveys/<int:question_id>
 class QuestionDetail(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated, IsSuperUserOrAdmin]
 
     # 특정 질문 불러오기
     def get_question(self, question_id):
@@ -47,10 +54,7 @@ class QuestionDetail(APIView):
         serializer = QuestionSerializer(question)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    # /surveys/<int:question_id>
-
     def post(self, request, question_id):
-
         question = self.get_question(question_id=question_id)
         serializer = AnswerSerializer(data=request.data)
 
@@ -65,6 +69,9 @@ class QuestionDetail(APIView):
 
 # /surveys/answers
 class Answers(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated, IsSuperUserOrAdmin]
+
     # 모든 답변 불러오기
     def get(self, request):
         answers = Answer.objects.all()
@@ -72,12 +79,13 @@ class Answers(APIView):
 
         return Response(serializer.data)
 
-    def post(self, request):
-        pass
 
-
+# /surveys/answer-by-user/<int:member_id>
 class AnswersByUser(APIView):
-    # 특정 유저가 한 모든 질문 불러오기
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated, IsSuperUserOrAdmin]
+
+    # 특정 유저가 대답한 모든 질문 불러오기
     def get_answers_by_user(self, member_id):
         try:
             user = User.objects.get(member_id=member_id)
@@ -94,7 +102,10 @@ class AnswersByUser(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
+# /surveys/answer-by-question/<int:question_id>
 class AnswersByQuestion(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated, IsSuperUserOrAdmin]
 
     def get_answers_by_question(self, question_id):
         try:
@@ -129,13 +140,7 @@ class AnswersByQuestion(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from app.authentication import JWTAuthentication
-import json
-
-
+# /surveys/submit : 일반유저가 서베이 폼 제출
 @api_view(["POST"])
 def survey_answers(request):
     authentication_classes = [JWTAuthentication]

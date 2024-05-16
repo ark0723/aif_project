@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from dotenv import load_dotenv
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from urllib.parse import unquote
 
 load_dotenv()
 
@@ -44,7 +45,9 @@ async def get_current_user(token: HTTPAuthorizationCredentials = Depends(securit
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid authentication scheme",
         )
-    user_data = verify_jwt_token(token.credentials)
+    # Replace %20 with spaces and then decode the token
+    token_value = unquote(token.credentials)
+    user_data = verify_jwt_token(token_value)
     if not user_data:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token"

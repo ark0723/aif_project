@@ -4,6 +4,7 @@ from rest_framework.authentication import BaseAuthentication
 from rest_framework.exceptions import AuthenticationFailed
 from users.models import User
 import jwt
+import urllib.parse  # For URL decoding
 
 
 class JWTAuthentication(BaseAuthentication):
@@ -17,6 +18,8 @@ class JWTAuthentication(BaseAuthentication):
 
         # decode token : jwt, key, algorithms
         try:
+            # Decode the token if it's URL-encoded
+            token = urllib.parse.unquote(token)
             # Check for the 'Bearer' prefix and extract the token
             prefix, token = token.split()
             if prefix != "Bearer":
