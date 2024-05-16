@@ -21,14 +21,12 @@ from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate, login, logout
 
-# 사용자 인증
-from rest_framework.authentication import TokenAuthentication
-
 # 권한 부여
 from rest_framework.permissions import IsAuthenticated
 
 # jwt 인증
 from app.authentication import JWTAuthentication
+from users.permissions import IsSuperUserOrAdmin
 import jwt
 from django.conf import settings
 
@@ -59,45 +57,80 @@ class JWTLogin(APIView):
 
 # /users [GET, POST]
 class Users(APIView):
-    # permission_classes = [IsAuthenticated]  # 추가: 인증 설정
+    def check_email(self, request):
+        api_key = os.getenv("EMAIL_API_KEY")
+        email = request.data.get("member_email")
+        print(email)
+
+        try:
+            api_response = requests.get(
+                f"https://api.zerobounce.net/v2/validate?api_key={api_key}&email={email}"
+            )
+            api_response.raise_for_status()
+
+        except requests.exceptions.RequestException as e:
+            return Response({"message": "API 요청에 실패했습니다."}, status=500)
+
+        api_response_json = api_response.json()
+        return api_response_json.get("status")
+
+    def get_user_by_email(self, email):
+        return User.objects.get(member_email=email)
 
     # 전체 유저 리스트
     def get(self, request):
+        # admin or staff만 접근 가능
+        authentication_classes = [JWTAuthentication]
+        permission_classes = [IsAuthenticated, IsSuperUserOrAdmin]
+
         users = User.objects.all()  # 객체
         # object -> json (serializer), queryset이므로 many = True is required
         serializer = UserSerializer(users, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    # 사용자 생성 - tod: check_email integration
+    # 사용자 생성
     def post(self, request):
-        # password 받아오기
+        # password, email 받아오기
         password = request.data.get("password")
-        serializer = MyInfoUserSerializer(data=request.data)
-        # Validate password if provided
-        if password:
-            try:
-                validate_password(password)
-            except:
-                raise ParseError("Invalid Password")
+        email = request.data.get("member_email")
 
-        if serializer.is_valid():
-            # Create new user object from serializer data
-            user = serializer.save()
+        # check the email address is already exist
+        try:
+            user = self.get_user_by_email(email)
+            return Response({"message": "이미 존재하는 이메일입니다."}, status=400)
+        except:
+            # check email
+            email_status = self.check_email(request)
+            if email_status == "invalid":
+                return Response({"message": "유효하지 않은 이메일입니다."}, status=400)
 
-            # Set password if provided and save user
+            serializer = MyInfoUserSerializer(data=request.data)
+            # Validate password if provided
             if password:
-                user.set_password(password)
-                user.save()
+                try:
+                    validate_password(password)
+                except:
+                    raise ParseError("Invalid Password")
 
-            # Return serialized user data in response
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        else:
-            # Handle serializer validation errors
-            raise ParseError(serializer.errors)
+            if serializer.is_valid():
+                # Create new user object from serializer data
+                user = serializer.save()
+
+                # Set password if provided and save user
+                if password:
+                    user.set_password(password)
+                    user.save()
+
+                # Return serialized user data in response
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            else:
+                # Handle serializer validation errors
+                raise ParseError(serializer.errors)
 
 
 # /users/myinfo [GET, PUT]
 class MyInfo(APIView):
+    # mypage 접근은 당사자만 가능하도록
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
@@ -244,7 +277,7 @@ def register_email(request):
             member = User(member_email=email)
             member.save()
             response = JsonResponse({"message": "이메일이 성공적으로 등록되었습니다."})
-            response.set_cookie("email_registered", "true")
+            # response.set_cookie("email_registered", "true")
             response.status_code = 200
             return response
         else:
