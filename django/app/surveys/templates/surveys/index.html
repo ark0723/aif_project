@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>설문조사</title>
+</head>
+<body>
+    <h2>설문조사</h2>
+    <form action="/surveys/answers" method="POST">
+        {% csrf_token %}
+        <div>
+            <label for="age">연령:</label>
+            <select id="age" name="1" required>
+                <option value="10">10대</option>
+                <option value="20">20대</option>
+                <option value="30">30대</option>
+                <option value="40">40대 이상</option>
+            </select>
+        </div>
+        <div>
+            <label for="price">이 가격이면 산다?!:</label>
+            <select id="price" name="2" required>
+                <option value="under1">1만원 미만</option>
+                <option value="1-2">1만원-2만원</option>
+                <option value="2-3">2만원-3만원대</option>
+                <option value="donotcare">가격은 상관없다</option>
+            </select>
+        </div>
+        <div>
+            <label for="satisfied">서비스 만족도:</label>
+            <select id="satisfied" name="3" required>
+                <option value="yes">만족</option>
+                <option value="no">불만족</option>
+            </select>
+        </div>
+        <div>
+            <label for="ui">ui:</label><br>
+            <input type="checkbox" id="ui" name="4" value="ui">
+            <label for="img">이미지 퀄리티</label><br>
+            <input type="checkbox" id="img" name="4" value="img">
+            <label for="various">이미지 다양성</label><br>
+            <input type="checkbox" id="various" name="4" value="various">
+        </div>
+        <div>
+            <label for="willing_to_use">사용 의향:</label>
+            <select id="willing_to_use" name="5" required>
+                <option value="yes">있다</option>
+                <option value="no">없다</option>
+            </select>
+        </div>
+        <div>
+            <label for="why">예/아니오 선택한 이유:</label>
+            <input type="text" id="why" name="6" required>
+        </div>
+        <div>
+            <button type="submit">제출</button>
+        </div>
+    </form>
+</body>
+</html>

@@ -68,7 +68,7 @@ class Users(APIView):
         serializer = UserSerializer(users, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    # 사용자 생성
+    # 사용자 생성 - tod: check_email integration
     def post(self, request):
         # password 받아오기
         password = request.data.get("password")

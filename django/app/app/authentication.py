@@ -1,4 +1,5 @@
 from django.conf import settings
+from rest_framework import exceptions
 from rest_framework.authentication import BaseAuthentication
 from rest_framework.exceptions import AuthenticationFailed
 from users.models import User
@@ -9,13 +10,18 @@ class JWTAuthentication(BaseAuthentication):
     # authenticate(): return a tuple of (user, token)
     # jwt: contains (header, payload, signature)
     def authenticate(self, request):
-        token = request.headers.get("jwt-auth")
+        token = self.get_authorization_header(request)
 
         if not token:  # no token
             return None
 
         # decode token : jwt, key, algorithms
         try:
+            # Check for the 'Bearer' prefix and extract the token
+            prefix, token = token.split()
+            if prefix != "Bearer":
+                raise exceptions.AuthenticationFailed("Invalid token prefix")
+
             decoded = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
             print("decoded", decoded)
             user_email = decoded.get("member_email")
@@ -33,3 +39,9 @@ class JWTAuthentication(BaseAuthentication):
             raise AuthenticationFailed("Error decoding token")
         except User.DoesNotExist:
             raise AuthenticationFailed("User not found")
+
+    def get_authorization_header(self, request):
+        auth_header = request.headers.get("Authorization")
+        if auth_header is None:
+            return None
+        return auth_header

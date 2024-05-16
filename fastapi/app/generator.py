@@ -112,7 +112,6 @@ def generate_ai_image_community_model(keyword: str, style: str):
     # initialize variables
     prompt = ""
     model_id = "ae-sdxl-v1"
-    style_code = style
 
     url = "https://stablediffusionapi.com/api/v4/dreambooth"
 
@@ -150,7 +149,7 @@ def generate_ai_image_community_model(keyword: str, style: str):
         "a mock-up image",
     ]
 
-    if style in ["팝아트"]:
+    if style == "팝아트":
         prompt = f"((pop art style)),(((illustration of Roy Lichtenstein style))), {description}, geometric colorful background, ink, comic book, cartoon style, half body, colors, double exposure, mixed media, intricately detailed"
 
     elif style == "데코":
