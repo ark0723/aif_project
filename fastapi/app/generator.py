@@ -281,7 +281,8 @@ def generate_ai_image_community_model(keyword: str, style: str):
     response = requests.request("POST", url, headers=headers, data=payload, timeout=200)
     # print(response.text)
     # response.text : str -> json.loads(response.text): dict
-    img_urls = json.loads(response.text)["future_links"]
+    # img_urls = json.loads(response.text)["future_links"]
+    img_urls = json.loads(response.text)["output"]
 
     end = time.time()
     print(end - start)  # time in seconds
