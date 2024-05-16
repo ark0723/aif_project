@@ -47,9 +47,9 @@ class Image(Base):
     img_id = Column(Integer, primary_key=True, index=True)
     member_id = Column(Integer, ForeignKey("users_user.member_id"))
     img_url = Column(String(length=255))
-    keyword_input = Column(Text)
+    keyword_input = Column(Text, nullable=True, default=None)
     generating_count = Column(SmallInteger, default=0)
-    style_code = Column(String(length=20))
+    style_code = Column(String(length=20), nullable=True, default=None)
     expiration_date = Column(DateTime, default=datetime.now() + timedelta(days=7))
 
     member = relationship("User", back_populates="images")

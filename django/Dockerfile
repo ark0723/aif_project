@@ -18,7 +18,6 @@ COPY ./app /app
 # Set work directory
 WORKDIR /app
 
-
 # Expose port (Django development server)
 EXPOSE 8000
 

@@ -100,8 +100,7 @@ def create_tshirt_image(
 ):
     try:
         db_img = Image(
-            member_id=user_id,
-            img_url=url,
+            member_id=user_id, img_url=url, keyword_input="t-shirt", style_code="null"
         )
         db.add(db_img)
         db.commit()
