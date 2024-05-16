@@ -84,33 +84,20 @@ def generate_ai_image(keyword: str, style: str):
     return img_urls
 
 
-def generate_ai_image_community_model(keyword: str, style: str, model_id: str):
+def generate_ai_image_community_model(keyword: str, style: str):
     # 1. given keyword from user
     # 2. ask chatgpt to complete prompt
     # 3. then ask stable-diffusion to generate the image
 
     start = time.time()
-
     client = OpenAI()
-
-    """
-    프롬프트 예시
-    (스타일키워드입력:)스타일로 (키워드입력: 멋진 남자배우가 가로등을 기대어 서있는 모습, 빈티지스러운 색상, 스토리가 있어보이는 환경), 
-    티셔츠에 넣기 좋은 이미지 키워드를, 
-    (이미지 느낌에 따라 완전히 흰 배경 또는 검정 배경에), 
-    (사진인지, 그림인지), 
-    (동물인지, 사람인지, 풍경인지), 조명 종류, 시점, 배경, 사진기가 광각인지 망원인지를 
-    고려해서 스테이블 디퓨전에 적절한 프롬프트를 영어로 적어줘
-    """
-
-    # style_codes = ['레트로', '팝아트', '데코', '그라피티', '키덜트', '라인아트', '스테인드글라스', '빈티지 포스터']
 
     completion = client.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=[
             {
                 "role": "user",
-                "content": f"({style}) 스타일로, ({keyword}), 티셔츠에 넣기 좋은 이미지 키워드를, (이미지 느낌에 따라 완전히 흰 배경 또는 검정 배경에), (사진인지, 그림인지), (동물인지, 사람인지, 풍경인지), 조명 종류, 시점, 배경, 사진기가 광각인지 망원인지를 고려해서 스테이블 디퓨전에 적절한 프롬프트를 영어로 적어줘",
+                "content": f"Given the following keyword: {keyword}, I want to generate an image. write down detailed keywords with more described words.",
             },
         ],
         temperature=0.8,
@@ -122,6 +109,10 @@ def generate_ai_image_community_model(keyword: str, style: str, model_id: str):
     print(f"prompt : {description}")
 
     # stable diffusion
+    # initialize variables
+    prompt = ""
+    model_id = "ae-sdxl-v1"
+    style_code = style
 
     url = "https://stablediffusionapi.com/api/v4/dreambooth"
 
@@ -131,7 +122,6 @@ def generate_ai_image_community_model(keyword: str, style: str, model_id: str):
         "cleavage",
         "nude",
         "nipples",
-        "painting",
         "extra fingers",
         "mutated hands",
         "poorly drawn hands",
@@ -158,17 +148,106 @@ def generate_ai_image_community_model(keyword: str, style: str, model_id: str):
         "truncated image",
         "cropped image",
         "a mock-up image",
-        "Images unrelated to the prompt you entered",
-        "An image where the main prompt you entered is not the main character",
     ]
 
-    if style in ["그라피티", "그래피티"]:
-        negative_words.append("a picture drawn on the street")
+    if style in ["팝아트"]:
+        prompt = f"((pop art style)),(((illustration of Roy Lichtenstein style))), {description}, geometric colorful background, ink, comic book, cartoon style, half body, colors, double exposure, mixed media, intricately detailed"
 
+    elif style == "데코":
+        prompt = f"(((main style is Art Deco style))), ((Abstract, geometric abstract)), (white background), (digital printing), {description}, zoom out, (vivid color), (colorful), high quality, highly detail."
+
+    elif style == "그라피티":
+        prompt = f"(((graffiti style illustration))), (((white background))),(digital painting), A captivating and energetic logo featuring the name {keyword} is intricately painted in swirling, anime inspired typography, ((colorful poster color)), ((Use less color)),(Very small range of coloring), (unexpected coloring), ((paint spreading and splashing effect)), (artistic coloring), (((abstract)))"
+
+    elif style == "키덜트":
+        model_id = "nightvision-xl"
+        negative_words.append(
+            "Bad anatomy",
+            "Bad hands",
+            "Amputee",
+            "Missing fingers",
+            "Missing hands",
+            "Missing limbs",
+            "Missing arms",
+            "Extra fingers",
+            "Extra hands",
+            "Extra limbs",
+            "Mutated hands",
+            "Mutated",
+            "Mutation",
+            "Multiple heads",
+            "Malformed limbs",
+            "Disfigured",
+            "Poorly drawn hands",
+            "Poorly drawn face",
+            "Long neck",
+            "Fused fingers",
+            "Fused hands",
+            "Dismembered",
+            "Duplicatem",
+            "Improper scale",
+            "Ugly body",
+            "Cloned face",
+            "Cloned body",
+            "Gross proportions",
+        )
+        prompt = f"((main style is kidult)), Imagine a whimsical scene featuring adorable pastel-colored {description} in a playful and colorful (kidult) style. Whether it's a photograph or an illustration, the focus is on the cute charm of the {description}, rendered in various pastel hues to evoke a sense of innocence and fun. The lighting is soft and diffused, casting gentle shadows to accentuate the textures, The perspective is childlike, capturing the world from a low angle to emphasize the wonder and imagination of childhood. The background is filled with imaginative elements like fluffy clouds, lush greenery, and perhaps hints of fantastical landscapes. Consider using a wide-angle lens to capture the expansive world of whimsy and delight."
+    elif style == "라인아트":
+        prompt = f"(((line art of Egon Schiele style))), ((Deconstructed minimalist line drawing)),(Drawing with emphasized lines), (white background), {description}, ((colorful pastel tone watercolor)), ((Use less color)),(Very small range of coloring), (unexpected coloring), ((paint spreading and splashing effect)), artistic coloring"
+    elif style == "앰블럼":
+        prompt = f"(((emblem logo))), ((clean and minimal logo design)), {description}, natural colors , text 'rabbit club' in bold font below the rabbit, (white background), (digital printing), high quality, high detail, high quality illustration"
+    elif style == "스테인글라스":
+        prompt = f"((main style is Stained glass, broken glass effect, Alfons Mucha style)), Stained glass {description} with a broken glass effect, texture-rich, mythical, radiant with energy, glowing with molecular precision, scales both iridescent and luminescent, an epitome of breathtaking beauty and divine presence, framed by volumetric light casting auras and rays, no background to enhance the vivid color reflections, stunning, unforgettable, impressive, ultra-realistic digital painting, Broken Glass effect, no background, stunning, something that even doesn't exist, mythical being, energy, molecular, textures, iridescent and luminescent scales, breathtaking beauty, pure perfection, divine presence, unforgettable, impressive, breathtaking beauty, Volumetric light, auras, rays, vivid colors reflects"
+    elif style == "빈티지 포스터":
+        prompt = f"(((main style is vintage poster of Joseph Christian Leyendecker style))),(old color paper texture), (vintage poster illustration), (white background),(digital painting), zoom out, full body shoot, {description}, detailed facial expression, High resolution illustration, sharp lines, high quality, highly detailed"
+    elif style == "애니메이션":
+        model_id = "dark-sushi-mix"
+        negative_words.append(
+            "Bad anatomy",
+            "Bad hands",
+            "Amputee",
+            "Missing fingers",
+            "Missing hands",
+            "Missing limbs",
+            "Missing arms",
+            "Extra fingers",
+            "Extra hands",
+            "Extra limbs",
+            "Mutated hands",
+            "Mutated",
+            "Mutation",
+            "Multiple heads",
+            "Malformed limbs",
+            "Disfigured",
+            "Poorly drawn hands",
+            "Poorly drawn face",
+            "Long neck",
+            "Fused fingers",
+            "Fused hands",
+            "Dismembered",
+            "Duplicatem",
+            "Improper scale",
+            "Ugly body",
+            "Cloned face",
+            "Cloned body",
+            "Gross proportions",
+        )
+        prompt = f"(((main style is anime STUDIO GHIBLI))), (digital painting), close up, {description}, cool summer sky, sunlit sparkling background, high quality, highly detailed, (Pastel colors), (lovely atmosphere), (ink), (comic book), (cartoon style), close up, half body, color, double exposure, mixed media, intricately detailed, top quality, 4K"
+
+    elif style == "픽셀아트":
+        model_id = "pixel-art-diffusion-xl"
+        negative_words.append("painting")
+        prompt = f"(((main style is pixel art))), ((white background)), (digital printing), {description}, (high contrast), (color palette limited), ultra-fine details"
+
+    else:
+        pass
+
+    print(model_id)
+    print(prompt)
     payload = json.dumps(
         {
             "key": os.getenv("STABLE_DIFFUSION_KEY"),
-            "prompt": description,
+            "prompt": prompt,
             "negative_prompt": ",".join(negative_words),
             "model_id": model_id,
             "width": "512",
@@ -177,7 +256,7 @@ def generate_ai_image_community_model(keyword: str, style: str, model_id: str):
             "num_inference_steps": "30",
             "safety_checker": "yes",
             "enhance_prompt": "yes",
-            "seed": 9284,
+            "seed": 9885,
             "guidance_scale": 7.5,
             "multi_lingual": "no",
             "panorama": "no",
@@ -189,7 +268,7 @@ def generate_ai_image_community_model(keyword: str, style: str, model_id: str):
             "use_karras_sigmas": "yes",
             "vae": None,
             "lora_strength": None,
-            "scheduler": "UniPCMultistepScheduler",
+            "scheduler": "DDPMScheduler",
             "webhook": None,
             "track_id": None,
         }
@@ -197,8 +276,9 @@ def generate_ai_image_community_model(keyword: str, style: str, model_id: str):
 
     headers = {"Content-Type": "application/json"}
     response = requests.request("POST", url, headers=headers, data=payload, timeout=200)
+    # print(response.text)
     # response.text : str -> json.loads(response.text): dict
-    img_urls = json.loads(response.text)["output"]  # "output"/"proxy_links"
+    img_urls = json.loads(response.text)["future_links"]
 
     end = time.time()
     print(end - start)  # time in seconds
@@ -234,6 +314,7 @@ def upscale_from_image(img_url: str):
 
     headers = {"Content-Type": "application/json"}
     response = requests.request("POST", url, headers=headers, data=payload, timeout=100)
+    print(response.text)
     # response.text : str -> json.loads(response.text): dict
     img_urls = json.loads(response.text)["output"]  # "output"/"proxy_links"
 

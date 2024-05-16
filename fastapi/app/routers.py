@@ -15,7 +15,7 @@ import os
 
 from pathlib import Path
 from starlette.templating import Jinja2Templates
-from generator import generate_ai_image_community_model
+from generator import generate_ai_image_community_model, generate_ai_image
 from s3_utils import upload_byte_to_s3
 import crud, schemas
 
@@ -44,9 +44,7 @@ def get_ai_images(
     print(email)
     # 1. user email을 쿠키로부터 받아온후, email을 이용해서 user id를 db에서 받아온다
     if not email:
-        raise HTTPException(
-            status_code=400, detail="Your email info does not exists in cookie!"
-        )
+        raise HTTPException(status_code=400, detail="You are not an authorized user!")
 
     if not (keyword and style):
         raise HTTPException(
@@ -57,8 +55,7 @@ def get_ai_images(
     if user and (user.img_generate_count < 2):
 
         # 2. 이미지를 생성한다
-        model_id = "crystal-clear-xlv1"
-        img_urls = generate_ai_image_community_model(keyword, style, model_id)
+        img_urls = generate_ai_image_community_model(keyword, style)
         print(img_urls)
 
         # 프롬프트로부터 생성된 이미지 url이 없는 경우
@@ -97,9 +94,7 @@ def get_ai_images(
     # 1. user email을 쿠키로부터 받아온후, email을 이용해서 user id를 db에서 받아온다
     email = current_user["member_email"]
     if not email:
-        raise HTTPException(
-            status_code=400, detail="Your email info does not exists in cookie!"
-        )
+        raise HTTPException(status_code=400, detail="Your are not an authorized user!")
 
     if not (keyword and style):
         raise HTTPException(
@@ -110,8 +105,7 @@ def get_ai_images(
     if user:
 
         # 2. 이미지를 생성한다
-        model_id = "crystal-clear-xlv1"
-        img_urls = generate_ai_image_community_model(keyword, style, model_id)
+        img_urls = generate_ai_image_community_model(keyword, style)
         print(img_urls)
 
         # 프롬프트로부터 생성된 이미지 url이 없는 경우
@@ -145,9 +139,7 @@ def show_sample_images_by_user(
     # 1. user email을 쿠키로부터 받아온후, email을 이용해서 user id를 db에서 받아온다
     email = current_user["member_email"]
     if not email:
-        raise HTTPException(
-            status_code=400, detail="Your email info does not exists in cookie!"
-        )
+        raise HTTPException(status_code=400, detail="You are not an authorized user!")
     user = crud.get_user_by_email(db=db, user_email=email)
 
     if user:
